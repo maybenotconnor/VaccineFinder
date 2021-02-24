@@ -1,12 +1,12 @@
 # Vinny's Vaccine Finder
 
-Scrapes data from https://vaxfinder.mass.gov and texts you the results.
+Scrapes vaccine location data from www.211ct.org and texts you the results.
 
 ## Get the code
 
 Use Github desktop or the command line:
 ```
-git clone https://github.com/gdancik/VaccineFinder.git
+git clone https://github.com/maybenotconnor/VaccineFinder.git
 ```
 ## Switch to the VaccineFinder directory
 
