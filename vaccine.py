@@ -39,7 +39,7 @@ def check_availability(myzip, skips) :
     # the value of "User-Agent" should be set appropriately
     headers = {"User-Agent": "VinnyVaccineFinder/1.0"}
     
-    myurl = 'https://vaxfinder.mass.gov/?zip_or_city='+myzip+'&vaccines_available=on&q='
+    myurl = 'https://www.211ct.org/search?page=1&location='+myzip+'&taxonomy_code=11172&service_area=connecticut'
     page = requests.get(myurl, headers)
     
     now = time.time()
@@ -54,7 +54,8 @@ def check_availability(myzip, skips) :
     soup = BeautifulSoup(page.content, 'html.parser')
     print('\n\nPage title:', soup.title.string.strip())
     
-    tt = soup.find('div', class_  = 'locations-table')
+    tt = soup.findAll('div', class_  = 'search-results card-highlight')
+    
     
     if not tt :
         print('no results found')
@@ -72,12 +73,22 @@ def check_availability(myzip, skips) :
     
     msg = ''
     count = 0
+    
+    for result in tt:
+        count += 1
+        loc = result.find('h3', class_ = 'name pointer resource-name')
+        loc = loc.get_text(strip=True)
+        dist = result.find('span', class_ = 'distance')
+        dist = dist.get_text(strip = True)
+    
+    '''
     for row in tt.find_all('tr')[1:] :
         count += 1
         loc = row.find(True, class_ = 'location-summary__title')
         loc = loc.get_text(strip = True)
         dist = row.find(True, class_ = 'location-distance')
         dist = dist.get_text(strip = True)
+    '''
         
         if loc in skips :
             if now - skips[loc] < 10*60 :                
