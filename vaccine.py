@@ -3,6 +3,7 @@
 
 from bs4 import BeautifulSoup
 import requests
+from selenium import webdriver
 
 import smtplib
 from email.mime.text import MIMEText
@@ -27,7 +28,7 @@ class vaxfinder :
 
 def check_availability(myzip, skips) :
 
-    """Checks vaccine availability from vaxfinder.mass.gov. 
+    """Checks vaccine availability from United Way 211. 
        myzip: the zip code to check availability against
        skips: a dictionary of locations to skip, with key being the location
               and the value a time in seconds. Locations are reported when
@@ -38,23 +39,30 @@ def check_availability(myzip, skips) :
 
     # the value of "User-Agent" should be set appropriately
     headers = {"User-Agent": "VinnyVaccineFinder/1.0"}
-    
     myurl = 'https://www.211ct.org/search?page=1&location='+myzip+'&taxonomy_code=11172&service_area=connecticut'
-    page = requests.get(myurl, headers)
+    #page = requests.get(myurl, headers, timeout=None)
+
+    driver = webdriver.Firefox()
+    driver.get(myurl)
+    time.sleep(4)
+    page = driver.page_source
     
     now = time.time()
-    
-    if page.status_code != requests.codes.ok :
-        print("Request was not successful, status code:", page.status_code)
-        print("Hit enter to continue...")
-        input()
-        return vaxfinder(now, skips, '')
+
+## Selenium can't handle http errors    
+##    if driver.status_code != requests.codes.ok :
+##        print("Request was not successful, status code:", page.status_code)
+##        print("Hit enter to continue...")
+##        input()
+##        return vaxfinder(now, skips, '')
         
     # Parse page using BeautifulSoup
-    soup = BeautifulSoup(page.content, 'html.parser')
+    soup = BeautifulSoup(page, 'html.parser')
+    #close selenium
+    driver.close()
     print('\n\nPage title:', soup.title.string.strip())
     
-    tt = soup.findAll('div', class_  = 'search-results card-highlight')
+    tt = soup.find_all("div",class_="search-result card-highlight")
     
     
     if not tt :
@@ -76,19 +84,12 @@ def check_availability(myzip, skips) :
     
     for result in tt:
         count += 1
-        loc = result.find('h3', class_ = 'name pointer resource-name')
+        loc = result.find("h3", class_ = "name pointer resource-name")
         loc = loc.get_text(strip=True)
-        dist = result.find('span', class_ = 'distance')
-        dist = dist.get_text(strip = True)
-    
-    '''
-    for row in tt.find_all('tr')[1:] :
-        count += 1
-        loc = row.find(True, class_ = 'location-summary__title')
-        loc = loc.get_text(strip = True)
-        dist = row.find(True, class_ = 'location-distance')
-        dist = dist.get_text(strip = True)
-    '''
+        print(loc)
+        dist = result.find("span", class_ = "distance")
+        dist = dist.get_text(strip=True)
+        print(dist)
         
         if loc in skips :
             if now - skips[loc] < 10*60 :                
